@@ -79,8 +79,6 @@ import com.nuvio.app.core.ui.nuvioSafeBottomPadding
 import com.nuvio.app.core.ui.shimmer
 import com.nuvio.app.core.ui.LocalVerticalBarPadding
 import com.nuvio.app.core.ui.centeredVerticalBarPadding
-import com.nuvio.app.features.cinema3d.Cinema3DMediaCompatibility
-import com.nuvio.app.features.cinema3d.isCompatibleWithCinema3D
 import com.nuvio.app.features.debrid.DebridSettingsRepository
 import com.nuvio.app.features.debrid.DirectDebridPlayableResult
 import com.nuvio.app.features.debrid.DirectDebridPlaybackResolver
@@ -129,7 +127,6 @@ fun StreamsScreen(
         resumePositionMs: Long?,
         resumeProgressFraction: Float?,
     ) -> Unit = { _, _, _, _ -> },
-    onOpenCinema3D: ((streamUrl: String, streamTitle: String) -> Unit)? = null,
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -405,75 +402,6 @@ fun StreamsScreen(
                     effectiveResumePositionMs,
                     effectiveResumeProgressFraction,
                 )
-            },
-            onOpenInCinema3D = if (
-                onOpenCinema3D != null &&
-                streamActionsTarget?.isCompatibleWithCinema3D(debridSettings.canResolvePlayableLinks) == true
-            ) {
-                { stream ->
-                    val cinemaTitle = if (isEpisode && seasonNumber != null && episodeNumber != null) {
-                        "$title • T${seasonNumber}E${episodeNumber}"
-                    } else {
-                        title
-                    }
-                    val directUrl = stream.playableDirectUrl
-                    if (!directUrl.isNullOrBlank() && Cinema3DMediaCompatibility.isUrlCompatible(
-                            url = directUrl,
-                            filenameHint = stream.behaviorHints.filename,
-                            titleHint = stream.name ?: stream.title,
-                            descriptionHint = stream.description,
-                        )
-                    ) {
-                        onOpenCinema3D(directUrl, cinemaTitle)
-                    } else if (stream.needsServerPreparation) {
-                        downloadScope.launch {
-                            val prepared = runCatching { ServerPlayback.prepare(stream) }
-                                .getOrElse { error ->
-                                    NuvioToastController.show(error.serverPlaybackMessage())
-                                    return@launch
-                                }
-                            val preparedUrl = prepared.playableDirectUrl
-                            if (!preparedUrl.isNullOrBlank() && Cinema3DMediaCompatibility.isUrlCompatible(
-                                    url = preparedUrl,
-                                    filenameHint = prepared.behaviorHints.filename,
-                                )
-                            ) {
-                                onOpenCinema3D(preparedUrl, cinemaTitle)
-                            } else {
-                                NuvioToastController.show("Formato incompatível com o Telão do Cinema 3D")
-                            }
-                        }
-                    } else if (DirectDebridPlaybackResolver.shouldResolveToPlayableStream(stream)) {
-                        downloadScope.launch {
-                            val resolved = DirectDebridPlaybackResolver.resolveToPlayableStream(
-                                stream = stream,
-                                season = seasonNumber,
-                                episode = episodeNumber,
-                            )
-                            when (resolved) {
-                                is DirectDebridPlayableResult.Success -> {
-                                    val resolvedUrl = resolved.stream.playableDirectUrl
-                                    if (!resolvedUrl.isNullOrBlank() && Cinema3DMediaCompatibility.isUrlCompatible(
-                                            url = resolvedUrl,
-                                            filenameHint = resolved.stream.behaviorHints.filename,
-                                        )
-                                    ) {
-                                        onOpenCinema3D(resolvedUrl, cinemaTitle)
-                                    } else {
-                                        NuvioToastController.show("Esta mídia usa codec incompatível com o Telão 3D")
-                                    }
-                                }
-                                else -> {
-                                    resolved.toastMessage()?.let(NuvioToastController::show)
-                                }
-                            }
-                        }
-                    } else {
-                        NuvioToastController.show(noDirectStreamLinkText)
-                    }
-                }
-            } else {
-                null
             },
         )
     }
@@ -1029,7 +957,6 @@ private fun StreamActionsSheet(
     onCopyLink: (StreamItem) -> Unit,
     onDownload: (StreamItem) -> Unit,
     onOpen: (StreamItem, openExternally: Boolean) -> Unit,
-    onOpenInCinema3D: ((StreamItem) -> Unit)? = null,
 ) {
     if (stream == null) return
 
@@ -1077,18 +1004,6 @@ private fun StreamActionsSheet(
             }
 
             NuvioBottomSheetDivider()
-            if (onOpenInCinema3D != null) {
-                NuvioBottomSheetActionRow(
-                    icon = Icons.Rounded.ViewInAr,
-                    title = stringResource(Res.string.streams_open_cinema3d),
-                    onClick = {
-                        onOpenInCinema3D(stream)
-                        coroutineScope.launch {
-                            dismissNuvioBottomSheet(sheetState = sheetState, onDismiss = onDismiss)
-                        }
-                    },
-                )
-            }
             NuvioBottomSheetActionRow(
                 icon = Icons.Rounded.ContentCopy,
                 title = stringResource(Res.string.streams_copy_link),

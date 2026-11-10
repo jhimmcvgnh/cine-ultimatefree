@@ -22,7 +22,6 @@ import com.nuvio.app.core.ui.DisintegrationRequest
 import com.nuvio.app.core.ui.NuvioLoadingIndicator
 import com.nuvio.app.core.ui.NuvioTokens
 import com.nuvio.app.core.ui.nuvio
-import com.nuvio.app.features.cinema3d.Cinema3DLobbyScreen
 import com.nuvio.app.features.cloud.CloudLibraryContentType
 import com.nuvio.app.features.cloud.CloudLibraryFile
 import com.nuvio.app.features.cloud.CloudLibraryItem
@@ -80,7 +79,6 @@ internal data class AppTabState(
 internal data class AppTabRequests(
     val homeScrollToTopRequests: Flow<Unit>,
     val searchScrollToTopRequests: Flow<Unit>,
-    val cinema3DScrollToTopRequests: Flow<Unit>,
     val libraryScrollToTopRequests: Flow<Unit>,
     val settingsRootActionRequests: Flow<Unit>,
 )
@@ -89,7 +87,6 @@ internal data class AppTabActions(
     val onCatalogClick: ((HomeCatalogSection) -> Unit)? = null,
     val onPosterClick: ((MetaPreview) -> Unit)? = null,
     val onPosterLongClick: ((MetaPreview) -> Unit)? = null,
-    val onEnterCinema3D: (streamUrl: String?, title: String?, seat: String, lightsOn: Boolean, exploreOnly: Boolean) -> Unit = { _, _, _, _, _ -> },
     val onLibraryPosterClick: ((LibraryItem) -> Unit)? = null,
     val onLibraryPosterLongClick: ((LibraryItem, LibrarySection) -> Unit)? = null,
     val onLibrarySectionViewAllClick: ((LibrarySection, LibrarySortOption) -> Unit)? = null,
@@ -158,14 +155,6 @@ internal fun AppTabHost(
                     onPosterLongClick = actions.onPosterLongClick,
                     searchFocusRequestCount = state.searchFocusRequestCount,
                     scrollToTopRequests = requests.searchScrollToTopRequests,
-                )
-            }
-
-            AppScreenTab.Cinema3D -> {
-                Cinema3DLobbyScreen(
-                    modifier = Modifier.fillMaxSize(),
-                    scrollToTopRequests = requests.cinema3DScrollToTopRequests,
-                    onEnterCinema = actions.onEnterCinema3D,
                 )
             }
 

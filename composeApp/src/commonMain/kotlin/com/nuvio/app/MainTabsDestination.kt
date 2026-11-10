@@ -38,12 +38,10 @@ import com.nuvio.app.features.settings.ThemeSettingsRepository
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.rememberHazeState
 import nuvio.composeapp.generated.resources.Res
-import nuvio.composeapp.generated.resources.compose_nav_cinema3d
 import nuvio.composeapp.generated.resources.compose_nav_home
 import nuvio.composeapp.generated.resources.compose_nav_library
 import nuvio.composeapp.generated.resources.compose_nav_profile
 import nuvio.composeapp.generated.resources.compose_nav_search
-import nuvio.composeapp.generated.resources.sidebar_cinema3d
 import nuvio.composeapp.generated.resources.sidebar_library
 import nuvio.composeapp.generated.resources.sidebar_search
 import org.jetbrains.compose.resources.stringResource
@@ -95,12 +93,6 @@ internal fun MainTabsDestination(
                 label = stringResource(Res.string.compose_nav_search),
             ),
             FloatingNavigationItem(
-                selected = selectedTab == AppScreenTab.Cinema3D,
-                onClick = { onTabSelected(AppScreenTab.Cinema3D) },
-                drawable = Res.drawable.sidebar_cinema3d,
-                label = stringResource(Res.string.compose_nav_cinema3d),
-            ),
-            FloatingNavigationItem(
                 selected = selectedTab == AppScreenTab.Library,
                 onClick = { onTabSelected(AppScreenTab.Library) },
                 drawable = Res.drawable.sidebar_library,
@@ -143,12 +135,6 @@ internal fun MainTabsDestination(
                             onClick = { onTabSelected(AppScreenTab.Search) },
                             icon = Res.drawable.sidebar_search,
                             contentDescription = stringResource(Res.string.compose_nav_search),
-                        )
-                        NavItem(
-                            selected = selectedTab == AppScreenTab.Cinema3D,
-                            onClick = { onTabSelected(AppScreenTab.Cinema3D) },
-                            icon = Res.drawable.sidebar_cinema3d,
-                            contentDescription = stringResource(Res.string.compose_nav_cinema3d),
                         )
                         NavItem(
                             selected = selectedTab == AppScreenTab.Library,

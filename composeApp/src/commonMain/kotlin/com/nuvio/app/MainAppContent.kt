@@ -90,7 +90,6 @@ import com.nuvio.app.features.addons.AddonRepository
 import com.nuvio.app.features.addons.enabledAddons
 import com.nuvio.app.features.addons.isWaitingForFirstEnabledManifest
 import com.nuvio.app.features.catalog.CatalogTarget
-import com.nuvio.app.features.cinema3d.Cinema3DPlayerScreen
 import com.nuvio.app.features.cloud.CloudLibraryContentType
 import com.nuvio.app.features.cloud.CloudLibraryFile
 import com.nuvio.app.features.cloud.CloudLibraryItem
@@ -256,7 +255,6 @@ internal fun MainAppContent(
         var searchFocusRequestCount by remember { mutableStateOf(0) }
         val homeScrollToTopRequests = remember { MutableSharedFlow<Unit>(extraBufferCapacity = 1) }
         val searchScrollToTopRequests = remember { MutableSharedFlow<Unit>(extraBufferCapacity = 1) }
-        val cinema3DScrollToTopRequests = remember { MutableSharedFlow<Unit>(extraBufferCapacity = 1) }
         val searchListState = rememberLazyListState()
         val libraryScrollToTopRequests = remember { MutableSharedFlow<Unit>(extraBufferCapacity = 1) }
         val settingsRootActionRequests = remember { MutableSharedFlow<Unit>(extraBufferCapacity = 1) }
@@ -422,7 +420,6 @@ internal fun MainAppContent(
                 searchFocusRequestCount++
                 searchScrollToTopRequests.tryEmit(Unit)
             }
-            AppScreenTab.Cinema3D -> cinema3DScrollToTopRequests.tryEmit(Unit)
             AppScreenTab.Library -> libraryScrollToTopRequests.tryEmit(Unit)
             AppScreenTab.Settings -> settingsRootActionRequests.tryEmit(Unit)
         }
@@ -1342,14 +1339,12 @@ internal fun MainAppContent(
                         requests = remember(
                             homeScrollToTopRequests,
                             searchScrollToTopRequests,
-                            cinema3DScrollToTopRequests,
                             libraryScrollToTopRequests,
                             settingsRootActionRequests,
                         ) {
                             AppTabRequests(
                                 homeScrollToTopRequests = homeScrollToTopRequests,
                                 searchScrollToTopRequests = searchScrollToTopRequests,
-                                cinema3DScrollToTopRequests = cinema3DScrollToTopRequests,
                                 libraryScrollToTopRequests = libraryScrollToTopRequests,
                                 settingsRootActionRequests = settingsRootActionRequests,
                             )
@@ -1382,17 +1377,6 @@ internal fun MainAppContent(
                                 onPosterClick = navController::openPreview,
                                 onPosterLongClick = { meta ->
                                     openPosterActions(PosterActionTarget(preview = meta))
-                                },
-                                onEnterCinema3D = { streamUrl, title, seat, lightsOn, exploreOnly ->
-                                    navController.navigate(
-                                        Cinema3DRoute(
-                                            streamUrl = streamUrl,
-                                            title = title,
-                                            seat = seat,
-                                            lightsOn = lightsOn,
-                                            exploreOnly = exploreOnly,
-                                        ),
-                                    )
                                 },
                                 onLibraryPosterClick = { item ->
                                     navController.navigate(
@@ -1602,17 +1586,6 @@ internal fun MainAppContent(
                         route = route,
                         navController = navController,
                         onPosterLongClick = openPosterActions,
-                    )
-                }
-                entry<Cinema3DRoute> { route ->
-                    val onBack = rememberGuardedPopBackStack(navController, route)
-                    Cinema3DPlayerScreen(
-                        streamUrl = route.streamUrl,
-                        title = route.title,
-                        seat = route.seat,
-                        lightsOn = route.lightsOn,
-                        exploreOnly = route.exploreOnly,
-                        onExit = onBack,
                     )
                 }
                 entry<HomescreenSettingsRoute> { route ->
@@ -2151,7 +2124,7 @@ internal fun MainAppContent(
 
 private fun AppRoute?.drawsUnderVerticalBar(selectedTab: AppScreenTab): Boolean =
     when (this) {
-        is DetailRoute, is StreamRoute, is PlayerRoute, is Cinema3DRoute -> true
-        is TabsRoute -> selectedTab == AppScreenTab.Home || selectedTab == AppScreenTab.Library || selectedTab == AppScreenTab.Cinema3D
+        is DetailRoute, is StreamRoute, is PlayerRoute -> true
+        is TabsRoute -> selectedTab == AppScreenTab.Home || selectedTab == AppScreenTab.Library
         else -> false
     }

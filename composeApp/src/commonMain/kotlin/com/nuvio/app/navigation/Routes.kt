@@ -156,15 +156,3 @@ data class PlayerRoute(
     override val hidesNavigationBar: Boolean
         get() = true
 }
-
-@Serializable
-data class Cinema3DRoute(
-    val streamUrl: String? = null,
-    override val title: String? = null,
-    val seat: String = "center",
-    val lightsOn: Boolean = false,
-    val exploreOnly: Boolean = false,
-) : AppRoute {
-    override val hidesNavigationBar: Boolean
-        get() = true
-}

@@ -1,6 +1,4 @@
 <resources>
-    <string name="compose_nav_cinema3d">Cinema 3D</string>
-    <string name="streams_open_cinema3d">Ver na Sala Cinema 3D</string>
     <string name="about_licenses_attributions_subtitle">Fontes de dados, agradecimentos e licenças da plataforma</string>
     <string name="about_supporters_contributors_subtitle">Reconhecimento público e créditos do projeto</string>
     <string name="action_back">Voltar</string>

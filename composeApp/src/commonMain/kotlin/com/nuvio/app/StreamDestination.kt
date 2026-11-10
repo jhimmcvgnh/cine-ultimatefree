@@ -848,14 +848,6 @@ internal fun StreamDestination(
                         forceInternal = !openExternally,
                     )
                 },
-                onOpenCinema3D = { streamUrl, streamTitle ->
-                    navController.navigate(
-                        Cinema3DRoute(
-                            streamUrl = streamUrl,
-                            title = streamTitle,
-                        ),
-                    )
-                },
                 onBack = onBack,
                 modifier = Modifier.fillMaxSize(),
             )

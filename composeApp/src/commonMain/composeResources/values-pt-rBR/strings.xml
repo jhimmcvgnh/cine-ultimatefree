@@ -1,6 +1,4 @@
 <resources>
-    <string name="compose_nav_cinema3d">Cinema 3D</string>
-    <string name="streams_open_cinema3d">Assistir na Sala Cinema 3D</string>
     <string name="theme_gold">Dourado</string>
     <string name="theme_jade">Jade</string>
     <string name="theme_rose_gold">Ouro Rosa</string>

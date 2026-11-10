@@ -23,7 +23,6 @@ import kotlinx.coroutines.launch
 internal enum class NativeNavigationTab {
     Home,
     Search,
-    Cinema3D,
     Library,
     Settings,
     ;
