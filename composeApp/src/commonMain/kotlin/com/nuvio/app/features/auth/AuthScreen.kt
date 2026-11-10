@@ -193,7 +193,7 @@ fun AuthScreen(
     val serverConnectionState by ServerConnectionController.state.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
     val focusManager = LocalFocusManager.current
-    var isSignUp by rememberSaveable { mutableStateOf(false) }
+    var isSignUp by rememberSaveable { mutableStateOf(true) }
     var email by rememberSaveable { mutableStateOf("") }
     var password by rememberSaveable { mutableStateOf("") }
     var passwordVisible by rememberSaveable { mutableStateOf(false) }
@@ -713,107 +713,117 @@ private fun AuthForm(
     onEmailBoundsChange: (Rect) -> Unit,
     onPasswordBoundsChange: (Rect) -> Unit,
 ) {
+    var showLoginScreen by rememberSaveable { mutableStateOf(false) }
     Column(
         modifier = Modifier.fillMaxWidth(),
     ) {
-        AuthTextField(
-            value = email,
-            onValueChange = onEmailChange,
-            placeholder = stringResource(Res.string.compose_auth_email),
-            icon = Icons.Rounded.Email,
-            metrics = metrics,
-            scale = scale,
-            modifier = Modifier.onGloballyPositioned { coordinates ->
-                onEmailBoundsChange(coordinates.boundsInRoot())
-            },
-            keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Email,
-                imeAction = ImeAction.Next,
-            ),
-        )
-
-        Spacer(modifier = Modifier.height(14.dp))
-
-        AuthTextField(
-            value = password,
-            onValueChange = onPasswordChange,
-            placeholder = stringResource(Res.string.compose_auth_password),
-            icon = Icons.Rounded.Lock,
-            metrics = metrics,
-            scale = scale,
-            isPassword = true,
-            passwordVisible = passwordVisible,
-            onPasswordVisibilityToggle = onPasswordVisibilityToggle,
-            modifier = Modifier.onGloballyPositioned { coordinates ->
-                onPasswordBoundsChange(coordinates.boundsInRoot())
-            },
-            keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Password,
-                imeAction = ImeAction.Done,
-            ),
-            keyboardActions = KeyboardActions(
-                onDone = { onSubmit() },
-            ),
-        )
-
-        authError?.let { errorText ->
-            Spacer(modifier = Modifier.height(12.dp))
-            Text(
-                text = errorText,
-                style = MaterialTheme.typography.bodyMedium.copy(
-                    color = MaterialTheme.colorScheme.error,
-                    fontSize = (13f * scale).sp,
-                    lineHeight = (18f * scale).sp,
-                ),
-            )
-        }
-
-        Spacer(modifier = Modifier.height(metrics.primaryTop))
-
-        AuthPrimaryButton(
-            text = if (isSignUp) stringResource(Res.string.compose_auth_create_account)
-            else stringResource(Res.string.compose_auth_sign_in),
-            isLoading = isLoading,
-            enabled = !isLoading,
-            height = metrics.primaryHeight,
-            scale = scale,
-            onClick = onSubmit,
-        )
-
-        Spacer(modifier = Modifier.height(metrics.toggleTop))
-
-        AuthModeToggle(
-            isSignUp = isSignUp,
-            scale = scale,
-            onToggleAuthMode = onToggleAuthMode,
-        )
-
-        Spacer(modifier = Modifier.height(metrics.dividerTop))
-
-        AuthDivider(scale = scale)
-
-        Spacer(modifier = Modifier.height(metrics.secondaryTop))
-
-        if (!isSignUp && deviceLinkEnabled) {
-            DeviceLinkAuthSection(
-                state = deviceLinkAuthState,
-                enabled = !isLoading,
+        if (!showLoginScreen) {
+            MercadoPagoPixInlineSection(
+                backendBaseUrl = "",
+                prefillEmail = email,
                 height = metrics.secondaryHeight,
                 scale = scale,
-                onStart = onStartDeviceLink,
-                onCancel = onCancelDeviceLink,
+                onPixApprovedForEmail = { approvedEmail ->
+                    onEmailChange(approvedEmail)
+                    if (!isSignUp) {
+                        onToggleAuthMode()
+                    }
+                    showLoginScreen = true
+                },
             )
 
             Spacer(modifier = Modifier.height(14.dp * scale))
-        }
 
-        AuthSecondaryButton(
-            text = stringResource(Res.string.compose_auth_continue_without_account),
-            enabled = !isLoading,
-            height = metrics.secondaryHeight,
-            scale = scale,
-            onClick = onContinueWithoutAccount,
-        )
+            AuthSecondaryButton(
+                text = "Já fez o pagamento ou já tem conta? Ir para Login →",
+                enabled = !isLoading,
+                height = metrics.secondaryHeight,
+                scale = scale,
+                onClick = { showLoginScreen = true },
+            )
+        } else {
+            AuthTextField(
+                value = email,
+                onValueChange = onEmailChange,
+                placeholder = stringResource(Res.string.compose_auth_email),
+                icon = Icons.Rounded.Email,
+                metrics = metrics,
+                scale = scale,
+                modifier = Modifier.onGloballyPositioned { coordinates ->
+                    onEmailBoundsChange(coordinates.boundsInRoot())
+                },
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Email,
+                    imeAction = ImeAction.Next,
+                ),
+            )
+
+            Spacer(modifier = Modifier.height(14.dp))
+
+            AuthTextField(
+                value = password,
+                onValueChange = onPasswordChange,
+                placeholder = stringResource(Res.string.compose_auth_password),
+                icon = Icons.Rounded.Lock,
+                metrics = metrics,
+                scale = scale,
+                isPassword = true,
+                passwordVisible = passwordVisible,
+                onPasswordVisibilityToggle = onPasswordVisibilityToggle,
+                modifier = Modifier.onGloballyPositioned { coordinates ->
+                    onPasswordBoundsChange(coordinates.boundsInRoot())
+                },
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Password,
+                    imeAction = ImeAction.Done,
+                ),
+                keyboardActions = KeyboardActions(
+                    onDone = { onSubmit() },
+                ),
+            )
+
+            authError?.let { errorText ->
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(
+                    text = errorText,
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        color = MaterialTheme.colorScheme.error,
+                        fontSize = (13f * scale).sp,
+                        lineHeight = (18f * scale).sp,
+                    ),
+                )
+            }
+
+            Spacer(modifier = Modifier.height(metrics.primaryTop))
+
+            AuthPrimaryButton(
+                text = if (isSignUp) stringResource(Res.string.compose_auth_create_account)
+                else stringResource(Res.string.compose_auth_sign_in),
+                isLoading = isLoading,
+                enabled = !isLoading,
+                height = metrics.primaryHeight,
+                scale = scale,
+                onClick = onSubmit,
+            )
+
+            Spacer(modifier = Modifier.height(metrics.toggleTop))
+
+            AuthModeToggle(
+                isSignUp = isSignUp,
+                scale = scale,
+                onToggleAuthMode = onToggleAuthMode,
+            )
+
+            Spacer(modifier = Modifier.height(metrics.secondaryTop))
+
+            AuthSecondaryButton(
+                text = "← Voltar para a Tela de Pagamento PIX (R$ 10,00)",
+                enabled = !isLoading,
+                height = metrics.secondaryHeight,
+                scale = scale,
+                onClick = { showLoginScreen = false },
+            )
+        }
 
         Spacer(modifier = Modifier.height(14.dp))
 

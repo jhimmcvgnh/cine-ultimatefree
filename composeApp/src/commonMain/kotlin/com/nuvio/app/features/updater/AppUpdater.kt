@@ -65,9 +65,7 @@ class AppUpdaterController internal constructor(
                     downloadJob?.cancel()
                     _uiState.value.downloadedApkPath?.let(AppUpdaterPlatform::deleteDownloadedApk)
                     _uiState.value = AppUpdaterUiState(updateChannel = channel)
-                    if (!AppUpdaterPlatform.isDebugBuild) {
-                        checkForUpdates(force = true, showNoUpdateFeedback = false)
-                    }
+                    checkForUpdates(force = true, showNoUpdateFeedback = false)
                 }
             }
         }
@@ -75,7 +73,7 @@ class AppUpdaterController internal constructor(
 
     fun ensureAutoCheckStarted() {
         if (autoCheckStarted || !AppFeaturePolicy.inAppUpdaterEnabled ||
-            !AppUpdaterPlatform.isSupported || AppUpdaterPlatform.isDebugBuild
+            !AppUpdaterPlatform.isSupported
         ) {
             return
         }

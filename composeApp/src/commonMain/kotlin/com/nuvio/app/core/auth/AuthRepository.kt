@@ -42,20 +42,13 @@ object AuthRepository {
         if (initialized) return
         initialized = true
 
-        val savedAnonId = AuthStorage.loadAnonymousUserId()
-        if (savedAnonId != null) {
-            _state.value = AuthState.Authenticated(
-                userId = savedAnonId,
-                email = null,
-                isAnonymous = true,
-            )
-        } else if (SupabaseProvider.client.auth.currentSessionOrNull() == null && !explicitSignOutRequested) {
-            signInAnonymously()
+        AuthStorage.clearAnonymousUserId()
+        if (SupabaseProvider.client.auth.currentSessionOrNull() == null) {
+            _state.value = AuthState.Unauthenticated
         }
 
         sessionStatusJob = scope.launch {
             SupabaseProvider.client.auth.sessionStatus.collect { status ->
-                if (AuthStorage.loadAnonymousUserId() != null) return@collect
                 when (status) {
                     is SessionStatus.Authenticated -> {
                         val user = status.session.user
@@ -69,23 +62,13 @@ object AuthRepository {
                         )
                     }
                     is SessionStatus.NotAuthenticated -> {
-                        if (!explicitSignOutRequested) {
-                            signInAnonymously()
-                        } else {
-                            _state.value = AuthState.Unauthenticated
-                        }
+                        _state.value = AuthState.Unauthenticated
                     }
                     is SessionStatus.Initializing -> {
-                        if (AuthStorage.loadAnonymousUserId() == null) {
-                            _state.value = AuthState.Loading
-                        }
+                        _state.value = AuthState.Loading
                     }
                     is SessionStatus.RefreshFailure -> {
-                        if (!explicitSignOutRequested) {
-                            signInAnonymously()
-                        } else {
-                            _state.value = AuthState.Unauthenticated
-                        }
+                        _state.value = AuthState.Unauthenticated
                     }
                 }
             }
