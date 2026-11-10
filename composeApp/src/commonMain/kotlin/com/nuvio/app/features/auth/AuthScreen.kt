@@ -719,7 +719,7 @@ private fun AuthForm(
     ) {
         if (!showLoginScreen) {
             MercadoPagoPixInlineSection(
-                backendBaseUrl = "",
+                backendBaseUrl = com.nuvio.app.core.network.CineBackendConfig.baseUrl,
                 prefillEmail = email,
                 height = metrics.secondaryHeight,
                 scale = scale,
