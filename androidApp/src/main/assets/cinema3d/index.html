@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="description" content="Cine Ultimate 3D - Sala de Cinema Virtual IMAX">
+  <title>Cine Ultimate 3D - Sala de Cinema</title>
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.17/dist/hls.min.js"></script>
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.168.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.168.0/examples/jsm/"
+    }
+  }
+  </script>
+  <link rel="stylesheet" href="css/style.css?v=32">
+</head>
+<body>
+<!-- LOADING SCREEN -->
+<div id="loading-screen">
+  <div id="curtain-left"></div>
+  <div id="curtain-right"></div>
+  <div id="loading-center">
+    <div class="cinema-brand">CINE ULTIMATE 3D</div>
+    <div class="loading-subtitle">Preparando a Sala de Cinema</div>
+    <div class="loading-bar-wrap"><div class="loading-bar-inner" id="loading-bar"></div></div>
+  </div>
+</div>
+
+<!-- MOBILE / APP FLOATING TOP BAR -->
+<div id="mobile-top-bar">
+  <button id="exit-cinema-btn" class="top-pill-btn exit-pill" type="button" title="Voltar ao Cine Ultimate">
+    <svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+    <span>Sair da Sala</span>
+  </button>
+  <div class="top-bar-right">
+    <button id="recenter-view-btn" class="top-pill-btn" type="button" title="Centralizar Visão no Telão">
+      <svg viewBox="0 0 24 24"><path d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3c-.46-4.17-3.77-7.48-7.94-7.94V1h-2v2.06C6.83 3.52 3.52 6.83 3.06 11H1v2h2.06c.46 4.17 3.77 7.48 7.94 7.94V23h2v-2.06c4.17-.46 7.48-3.77 7.94-7.94H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"/></svg>
+      <span class="hide-xs">Centralizar</span>
+    </button>
+    <button id="rotate-screen-btn" class="top-pill-btn" type="button" title="Alternar Horizontal / Vertical">
+      <svg viewBox="0 0 24 24"><path d="M16.48 2.52c3.27 1.55 5.61 4.72 5.97 8.48h1.5C23.44 4.84 18.29 0 12 0l-.66.03 3.81 3.81 1.33-1.32zm-6.25-.77c-.59-.59-1.54-.59-2.12 0L1.75 8.11c-.59.59-.59 1.54 0 2.12l12.02 12.02c.59.59 1.54.59 2.12 0l6.36-6.36c.59-.59.59-1.54 0-2.12L10.23 1.75zm4.6 19.44L2.81 9.17l6.36-6.36 12.02 12.02-6.36 6.36zm-7.31.29C4.25 19.94 1.91 16.76 1.55 13H.05C.56 19.16 5.71 24 12 24l.66-.03-3.81-3.81-1.33 1.32z"/></svg>
+      <span class="hide-xs">Girar</span>
+    </button>
+    <button id="quick-hub-btn" class="top-pill-btn gold-pill" type="button" title="Escolher Filme, Série, Link ou Arquivo">
+      <svg viewBox="0 0 24 24"><path d="M18 4l2 4h-3l-2-4h-2l2 4h-3l-2-4H8l2 4H7L5 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V4h-4z"/></svg>
+      <span>Escolher Mídia</span>
+    </button>
+  </div>
+</div>
+
+<!-- GLOBAL DRAG & DROP OVERLAY -->
+<div id="global-drag-overlay" class="global-drag-overlay" style="display:none">
+  <div class="drag-overlay-card">
+    <div class="drag-overlay-icon">
+      <svg viewBox="0 0 24 24"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/></svg>
+    </div>
+    <h2>SOLTE O VÍDEO COMPATÍVEL</h2>
+    <p>Formatos aceitos no telão 3D: MP4, WebM, MOV, M4V e legendas SRT / VTT</p>
+  </div>
+</div>
+
+<!-- WELCOME SCREEN / MEDIA HUB MODAL -->
+<div id="welcome-screen" style="display:none">
+  <div id="drop-zone" class="media-hub-modal">
+    <button id="modal-close-btn" class="modal-close-btn" title="Explorar Arquitetura 3D">&times;</button>
+
+    <div class="modal-header">
+      <div class="modal-badge">SALA DE CINEMA 3D &bull; PROJEÇÃO IMAX &amp; 5.1</div>
+      <h1 class="welcome-title">CATÁLOGO DO TELÃO 3D</h1>
+      <p class="welcome-subtitle">Exibindo somente mídias compatíveis com reprodução WebGL no telão 3D</p>
+    </div>
+
+    <!-- TABS NAVIGATION -->
+    <div class="media-tabs">
+      <button class="media-tab active" data-tab="tab-library" id="tab-btn-library" type="button">
+        <svg viewBox="0 0 24 24"><path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-8 12.5v-9l6 4.5-6 4.5z"/></svg>
+        <span>Catálogo</span>
+      </button>
+      <button class="media-tab" data-tab="tab-local" id="tab-btn-local" type="button">
+        <svg viewBox="0 0 24 24"><path d="M17 1.01L7 1c-1.1 0-2 .9-2 2v18c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V3c0-1.1-.9-1.99-2-1.99zM17 19H7V5h10v14z"/></svg>
+        <span>Do Aparelho</span>
+      </button>
+      <button class="media-tab" data-tab="tab-url" id="tab-btn-url" type="button">
+        <svg viewBox="0 0 24 24"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>
+        <span>Por Link</span>
+      </button>
+    </div>
+
+    <!-- TAB 1: CATÁLOGO DE FILMES & SÉRIES COMPATÍVEIS -->
+    <div id="tab-library" class="tab-pane active">
+      <div id="catalog-main-view">
+        <div class="compat-filter-bar">
+          <div class="cat-filter-chips">
+            <button class="cat-chip active" data-filter="all" type="button">Todos</button>
+            <button class="cat-chip" data-filter="movie" type="button">Filmes</button>
+            <button class="cat-chip" data-filter="series" type="button">Séries</button>
+          </div>
+          <span class="compat-pill-note">✓ Filtrado: MP4 / WebM / HLS compatíveis</span>
+        </div>
+
+        <div class="library-toolbar">
+          <div class="search-wrap">
+            <input type="text" id="library-search" placeholder="Buscar filmes ou séries compatíveis com o telão..." />
+          </div>
+          <button id="refresh-library-btn" class="icon-text-btn" type="button" title="Atualizar Catálogo">
+            <svg viewBox="0 0 24 24"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+            <span class="hide-xs">Atualizar</span>
+          </button>
+        </div>
+
+        <div id="movie-grid" class="movie-grid">
+          <div class="loading-spinner">Verificando filmes e séries compatíveis com o Telão 3D...</div>
+        </div>
+      </div>
+
+      <!-- INLINE SERIES SEASONS & EPISODES VIEW -->
+      <div id="series-episodes-panel" class="series-episodes-panel" style="display:none">
+        <div class="series-panel-header">
+          <button id="back-to-catalog-btn" class="icon-text-btn" type="button">
+            <svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+            <span>Voltar</span>
+          </button>
+          <div class="series-panel-titles">
+            <div id="series-panel-title" class="series-panel-title">Série</div>
+            <div class="series-panel-sub">Escolha um episódio compatível para projetar no telão 3D</div>
+          </div>
+        </div>
+        <div id="season-tabs-row" class="season-tabs-row"></div>
+        <div id="episodes-list" class="episodes-list"></div>
+      </div>
+    </div>
+
+    <!-- TAB 2: DO APARELHO -->
+    <div id="tab-local" class="tab-pane">
+      <div id="local-drop-zone" class="upload-dropzone">
+        <input type="file" id="local-file-input" accept=".mp4,.m4v,.webm,.mov,.ogv,video/mp4,video/webm,video/quicktime,video/ogg" style="display:none;" />
+        <div class="dropzone-icon">
+          <svg viewBox="0 0 24 24"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/></svg>
+        </div>
+        <h3 class="dropzone-title">Escolher vídeo compatível do aparelho</h3>
+        <p class="dropzone-sub">Somente vídeos suportados pelo Telão 3D são aceitos (MP4, WebM, MOV e M4V)</p>
+        <button id="browse-local-btn" class="browse-btn" type="button">
+          <svg viewBox="0 0 24 24" style="width:18px;height:18px;margin-right:8px;fill:currentColor;"><path d="M20 6h-8l-2-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 12H4V6h5.17l2 2H20v10z"/></svg>
+          Selecionar Vídeo do Aparelho
+        </button>
+        <div class="format-info">COMPATÍVEIS: MP4 (H.264/AAC), WEBM, MOV, M4V &bull; ÁUDIO 5.1 ESPACIAL</div>
+      </div>
+
+      <div id="local-compat-alert" class="url-status-message" style="margin-top:10px;"></div>
+
+      <!-- SELECTED FILE DETAILS & ACTIONS -->
+      <div id="selected-file-card" class="selected-file-card" style="display:none">
+        <div class="file-card-info">
+          <div class="file-card-icon">🎬</div>
+          <div class="file-card-text">
+            <span id="selected-file-name" class="file-name">filme.mp4</span>
+            <span id="selected-file-size" class="file-size">0 MB</span>
+          </div>
+        </div>
+
+        <div class="file-card-actions">
+          <button id="btn-play-instant" class="btn-cinema-action primary" type="button">
+            <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+            Projetar Agora no Telão 3D
+          </button>
+        </div>
+      </div>
+
+      <!-- OPTIONAL EXTERNAL SUBTITLE -->
+      <div class="optional-subtitle-box">
+        <input type="file" id="sub-file-input" accept=".srt,.vtt" style="display:none" />
+        <div class="sub-box-title">Legenda Externa (.srt / .vtt):</div>
+        <div class="sub-box-controls">
+          <button id="browse-sub-btn" class="sub-btn" type="button">
+            <svg viewBox="0 0 24 24" style="width:16px;height:16px;margin-right:6px;fill:currentColor;"><path d="M19 4H5c-1.11 0-2 .9-2 2v12c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-8 7H9.5v-.5h-2v3h2V13H11v1.5c0 .28-.22.5-.5.5h-3c-.28 0-.5-.22-.5-.5v-4c0-.28.22-.5.5-.5h3c.28 0 .5.22.5.5V11zm7 0h-1.5v-.5h-2v3h2V13H18v1.5c0 .28-.22.5-.5.5h-3c-.28 0-.5-.22-.5-.5v-4c0-.28.22-.5.5-.5h3c.28 0 .5.22.5.5V11z"/></svg>
+            Carregar Legenda
+          </button>
+          <span id="sub-file-name" class="sub-file-label">Nenhuma legenda carregada</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 3: POR LINK -->
+    <div id="tab-url" class="tab-pane">
+      <div class="url-input-container">
+        <label for="web-url-input" class="url-input-label">Cole um Link Compatível com o Telão 3D (.mp4, .webm ou .m3u8 HLS):</label>
+        <div class="url-input-row">
+          <input type="url" id="web-url-input" placeholder="https://servidor.com/filme.mp4 ou transmissao.m3u8" />
+          <button id="btn-play-url" class="btn-cinema-action primary" type="button">
+            <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+            Projetar no Telão
+          </button>
+        </div>
+        <div id="url-status" class="url-status-message"></div>
+        <div class="compat-rules-box">
+          <strong>Formatos aceitos por link no Telão 3D:</strong> links diretos HTTP/HTTPS em <code>.mp4</code>, <code>.webm</code>, <code>.mov</code>, <code>.m4v</code> ou listas HLS <code>.m3u8</code> (H.264/VP9 + AAC/MP3/Opus). Links torrent/magnet, páginas web ou codecs HEVC/AC3/DTS são bloqueados automaticamente.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CANVAS & VIDEO -->
+<canvas id="theatre-canvas"></canvas>
+<video id="cinema-video" preload="auto" playsinline webkit-playsinline disablePictureInPicture></video>
+
+<!-- BUFFERING -->
+<div id="buffering-overlay" style="display:none">
+  <div class="film-reel">
+    <svg viewBox="0 0 100 100">
+      <circle cx="50" cy="50" r="42" stroke="#c8a96e" stroke-width="2" fill="none" stroke-dasharray="263" stroke-dashoffset="66" opacity="0.4"/>
+      <circle cx="50" cy="50" r="28" stroke="#c8a96e" stroke-width="2" fill="none"/>
+      <circle cx="50" cy="50" r="9" fill="#c8a96e"/>
+      <circle cx="50" cy="22" r="6" fill="#c8a96e" opacity="0.7"/>
+      <circle cx="73.2" cy="65" r="6" fill="#c8a96e" opacity="0.7"/>
+      <circle cx="26.8" cy="65" r="6" fill="#c8a96e" opacity="0.7"/>
+    </svg>
+  </div>
+  <p id="buffering-text">Projetando no Telão 3D...</p>
+</div>
+
+<!-- TOAST NOTIFICATIONS -->
+<div id="error-toast" class="toast" style="display:none"><span id="error-msg">Erro</span></div>
+<div id="app-toast" class="toast app-info-toast" style="display:none"><span id="app-toast-msg">Mensagem</span></div>
+
+<!-- HUD -->
+<div id="hud" class="hud-hidden">
+  <div id="hud-top">
+    <div class="hud-file-info">
+      <span class="hud-icon">IMAX</span>
+      <span id="hud-filename">Nenhuma mídia carregada</span>
+      <button id="add-media-top-btn" class="hud-add-btn" type="button" title="Escolher Mídia">
+        <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+        <span>Mídia</span>
+      </button>
+    </div>
+    <div class="hud-right-top">
+      <span class="quality-badge">3D IMAX</span>
+      <span class="quality-badge audio-spatial-badge">5.1</span>
+      <span id="fps-counter" class="fps">60 fps</span>
+    </div>
+  </div>
+  <div id="seek-container">
+    <div id="seek-bar-wrap">
+      <div id="seek-buffered"></div>
+      <div id="seek-progress"></div>
+      <input type="range" id="seek-bar" min="0" max="10000" value="0" step="1">
+    </div>
+  </div>
+  <div id="hud-bottom">
+    <div class="hud-left">
+      <button id="open-btn" class="ctrl-btn" type="button" title="Abrir Catálogo & Mídia">
+        <svg viewBox="0 0 24 24"><path d="M20 6h-8l-2-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 12H4V6h5.17l2 2H20v10z"/></svg>
+      </button>
+      <button id="seek-back-btn" class="ctrl-btn" type="button" title="Voltar 10s">
+        <svg viewBox="0 0 24 24"><path d="M11.99 5V1l-5 5 5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6h-2c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/></svg>
+      </button>
+      <button id="play-btn" class="ctrl-btn play-btn" type="button" title="Play/Pause">
+        <svg id="play-icon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+        <svg id="pause-icon" viewBox="0 0 24 24" style="display:none"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+      </button>
+      <button id="seek-fwd-btn" class="ctrl-btn" type="button" title="Avançar 10s">
+        <svg viewBox="0 0 24 24"><path d="M12.01 5V1l5 5-5 5V7c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6h2c0 4.42-3.58 8-8 8s-8-3.58-8-8 3.58-8 8-8z"/></svg>
+      </button>
+      <div class="time-display">
+        <span id="current-time">0:00:00</span>
+        <span class="time-sep">/</span>
+        <span id="total-time">0:00:00</span>
+      </div>
+    </div>
+    <div class="hud-center">
+      <button id="mute-btn" class="ctrl-btn" type="button" title="Mudo">
+        <svg id="vol-icon" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
+        <svg id="muted-icon" viewBox="0 0 24 24" style="display:none"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/></svg>
+      </button>
+      <div class="volume-wrap"><input type="range" id="volume-bar" min="0" max="100" value="100"></div>
+    </div>
+    <div class="hud-right">
+      <button id="subs-btn" class="ctrl-btn" type="button" title="Fontes, Áudio & Legendas">
+        <svg viewBox="0 0 24 24"><path d="M19 4H5c-1.11 0-2 .9-2 2v12c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-8 7H9.5v-.5h-2v3h2V13H11v1.5c0 .28-.22.5-.5.5h-3c-.28 0-.5-.22-.5-.5v-4c0-.28.22-.5.5-.5h3c.28 0 .5.22.5.5V11zm7 0h-1.5v-.5h-2v3h2V13H18v1.5c0 .28-.22.5-.5.5h-3c-.28 0-.5-.22-.5-.5v-4c0-.28.22-.5.5-.5h3c.28 0 .5.22.5.5V11z"/></svg>
+      </button>
+      <select id="speed-select" class="ctrl-select" title="Velocidade">
+        <option value="0.5">0.5x</option>
+        <option value="0.75">0.75x</option>
+        <option value="1" selected>1x</option>
+        <option value="1.25">1.25x</option>
+        <option value="1.5">1.5x</option>
+        <option value="2">2x</option>
+      </select>
+      <button id="lights-btn" class="ctrl-btn" type="button" title="Luzes do Cinema">
+        <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.87-3.13-7-7-7zm2 14h-4v-1h4v1zm0-3H10v-1.5c-1.19-.45-2-1.6-2-2.5 0-1.66 1.34-3 3-3s3 1.34 3 3c0 .9-.81 2.05-2 2.5V13z"/></svg>
+      </button>
+      <button id="fullscreen-btn" class="ctrl-btn" type="button" title="Tela Cheia">
+        <svg id="fs-expand" viewBox="0 0 24 24"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>
+        <svg id="fs-collapse" viewBox="0 0 24 24" style="display:none"><path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z"/></svg>
+      </button>
+    </div>
+  </div>
+</div>
+
+<div id="tracks-menu" class="track-menu-container">
+  <h3>Fontes &amp; Áudio 3D</h3>
+  <div id="audio-list"></div>
+  <h3 style="margin-top:10px">Legendas</h3>
+  <div id="sub-list"></div>
+</div>
+
+<div id="drag-hint">Arraste para olhar ao redor &bull; Pinça para Zoom &bull; 2 Toques para Centralizar</div>
+
+<script type="module" src="js/main.js?v=32"></script>
+</body>
+</html>
