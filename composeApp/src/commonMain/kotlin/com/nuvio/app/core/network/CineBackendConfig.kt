@@ -8,4 +8,10 @@ object CineBackendConfig {
 
     val baseUrl: String
         get() = VERCEL_API_URL.trim().removeSuffix("/").ifBlank { "http://10.0.2.2:3333" }
+
+    /**
+     * URL direta do checkout de pagamento mobile
+     */
+    val checkoutUrl: String
+        get() = baseUrl
 }

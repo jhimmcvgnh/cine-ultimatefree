@@ -41,6 +41,8 @@ import androidx.compose.material.icons.rounded.Visibility
 import androidx.compose.material.icons.rounded.VisibilityOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Surface
+import androidx.compose.material3.TextButton
 import com.nuvio.app.core.ui.NuvioLoadingIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -718,30 +720,32 @@ private fun AuthForm(
         modifier = Modifier.fillMaxWidth(),
     ) {
         if (!showLoginScreen) {
-            MercadoPagoPixInlineSection(
-                backendBaseUrl = com.nuvio.app.core.network.CineBackendConfig.baseUrl,
-                prefillEmail = email,
-                height = metrics.secondaryHeight,
+            val uriHandler = LocalUriHandler.current
+            AppPaywallPreCheckoutSection(
                 scale = scale,
-                onPixApprovedForEmail = { approvedEmail ->
-                    onEmailChange(approvedEmail)
-                    if (!isSignUp) {
-                        onToggleAuthMode()
-                    }
-                    showLoginScreen = true
+                primaryHeight = metrics.primaryHeight,
+                secondaryHeight = metrics.secondaryHeight,
+                onGoToCheckout = {
+                    uriHandler.openUri(com.nuvio.app.core.network.CineBackendConfig.checkoutUrl)
                 },
-            )
-
-            Spacer(modifier = Modifier.height(14.dp * scale))
-
-            AuthSecondaryButton(
-                text = "Já fez o pagamento ou já tem conta? Ir para Login →",
-                enabled = !isLoading,
-                height = metrics.secondaryHeight,
-                scale = scale,
-                onClick = { showLoginScreen = true },
+                onGoToLogin = { showLoginScreen = true },
             )
         } else {
+            TextButton(
+                onClick = { showLoginScreen = false },
+                modifier = Modifier.align(Alignment.Start),
+            ) {
+                Text(
+                    text = "← Voltar para Informações do Plano",
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        color = Color(0xFF38BDF8),
+                        fontWeight = FontWeight.SemiBold,
+                    ),
+                )
+            }
+
+            Spacer(modifier = Modifier.height(6.dp * scale))
+
             AuthTextField(
                 value = email,
                 onValueChange = onEmailChange,
@@ -1155,4 +1159,121 @@ private fun LayoutCoordinates.boundsInRoot(): Rect {
         right = position.x + size.width,
         bottom = position.y + size.height,
     )
+}
+
+@Composable
+private fun AppPaywallPreCheckoutSection(
+    scale: Float,
+    primaryHeight: Dp,
+    secondaryHeight: Dp,
+    onGoToCheckout: () -> Unit,
+    onGoToLogin: () -> Unit,
+) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(20.dp),
+        color = Color(0xFF131722),
+        border = BorderStroke(1.dp, Color(0xFF22C55E).copy(alpha = 0.35f)),
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(20.dp * scale),
+        ) {
+            Surface(
+                shape = RoundedCornerShape(999.dp),
+                color = Color(0xFF22C55E).copy(alpha = 0.12f),
+                border = BorderStroke(1.dp, Color(0xFF22C55E).copy(alpha = 0.35f)),
+            ) {
+                Text(
+                    text = "🔒 ACESSO RESTRITO POR ASSINATURA",
+                    style = MaterialTheme.typography.labelSmall.copy(
+                        color = Color(0xFF4ADE80),
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 0.5.sp,
+                        fontSize = (11f * scale).sp,
+                    ),
+                    modifier = Modifier.padding(horizontal = 10.dp * scale, vertical = 5.dp * scale),
+                )
+            }
+
+            Spacer(modifier = Modifier.height(14.dp * scale))
+
+            Text(
+                text = "Libere o Acesso ao Cine Ultimate",
+                style = MaterialTheme.typography.titleLarge.copy(
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = (20f * scale).sp,
+                ),
+            )
+
+            Spacer(modifier = Modifier.height(6.dp * scale))
+
+            Text(
+                text = "Para assistir a milhares de filmes, séries, canais ao vivo em 4K e curtir a Sala Cinema 3D, realize o pagamento único de R$ 10,00 no site oficial.",
+                style = MaterialTheme.typography.bodyMedium.copy(
+                    color = Color(0xFF94A3B8),
+                    fontSize = (13f * scale).sp,
+                    lineHeight = (19f * scale).sp,
+                ),
+            )
+
+            Spacer(modifier = Modifier.height(16.dp * scale))
+
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp * scale)) {
+                PaywallBenefitItem("✓ Pagamento Único de R$ 10,00 (Sem mensalidade)", scale)
+                PaywallBenefitItem("✓ Canais Ao Vivo 4K & Full HD", scale)
+                PaywallBenefitItem("✓ Catálogo completo de Filmes e Séries", scale)
+                PaywallBenefitItem("✓ Sala Cinema 3D com som imersivo", scale)
+                PaywallBenefitItem("✓ Liberação imediata após o PIX no site", scale)
+            }
+
+            Spacer(modifier = Modifier.height(20.dp * scale))
+
+            Button(
+                onClick = onGoToCheckout,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(primaryHeight),
+                shape = RoundedCornerShape(14.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF22C55E),
+                    contentColor = Color.White,
+                ),
+            ) {
+                Text(
+                    text = "⚡ Pagar R$ 10,00 no Site e Liberar",
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        fontWeight = FontWeight.Bold,
+                        fontSize = (15f * scale).sp,
+                    ),
+                )
+            }
+
+            Spacer(modifier = Modifier.height(12.dp * scale))
+
+            AuthSecondaryButton(
+                text = "Já paguei no site / Fazer Login →",
+                enabled = true,
+                height = secondaryHeight,
+                scale = scale,
+                onClick = onGoToLogin,
+            )
+        }
+    }
+}
+
+@Composable
+private fun PaywallBenefitItem(text: String, scale: Float) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Text(
+            text = text,
+            style = MaterialTheme.typography.bodySmall.copy(
+                color = Color(0xFFE2E8F0),
+                fontWeight = FontWeight.Medium,
+                fontSize = (12.5f * scale).sp,
+            ),
+        )
+    }
 }
